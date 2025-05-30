@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Specialization {
+  SpecializationID    Int        @id @default(autoincrement())
+  SpecializationName  String     @unique
+  Description         String?
+  doctors             Doctor[]   // Relation to Doctor model
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
+
+model Doctor {
+  DoctorID            Int        @id @default(autoincrement())
+  FirstName           String
+  LastName            String
+  LicenseNumber       String     @unique
+  ContactPhone        String     @unique
+  Email               String     @unique
+  OfficeRoomNumber    String?
+  IsActive            Boolean    @default(true)
+  SpecializationID    Int?       // Foreign key for Specialization
+  specialization      Specialization? @relation(fields: [SpecializationID], references: [SpecializationID])
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
+
+model ProcedureCategory {
+  CategoryID        Int             @id @default(autoincrement())
+  CategoryName      String          @unique
+  Description       String?
+  procedureTypes    ProcedureType[] // Relation to ProcedureType model
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model ProcedureType {
+  ProcedureTypeID             Int       @id @default(autoincrement())
+  ProcedureName               String    @unique
+  Description                 String?
+  DefaultDurationMinutes    Int?
+  StandardPrice               Float?    // Use Float for currency or Decimal if your DB supports it well with Prisma
+  RequiresToothSpecification  Boolean   @default(false)
+  IsActive                    Boolean   @default(true)
+  CategoryID                  Int       // Foreign key for ProcedureCategory
+  category                    ProcedureCategory @relation(fields: [CategoryID], references: [CategoryID])
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+}
