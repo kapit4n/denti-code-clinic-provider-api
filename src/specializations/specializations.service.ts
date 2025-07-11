@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service'; 
-import { Specialization, Prisma } from '../../generated/prisma';
+import { Prisma } from '@prisma/client';
 import { CreateSpecializationDto } from './dto/create-specialization.dto';
 import { UpdateSpecializationDto } from './dto/update-specialization.dto';
 
@@ -13,7 +13,7 @@ import { UpdateSpecializationDto } from './dto/update-specialization.dto';
 export class SpecializationsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreateSpecializationDto): Promise<Specialization> {
+  async create(dto: CreateSpecializationDto) {
     try {
       return await this.prisma.specialization.create({
         data: dto,
@@ -28,11 +28,11 @@ export class SpecializationsService {
     }
   }
 
-  async findAll(): Promise<Specialization[]> {
+  async findAll() {
     return this.prisma.specialization.findMany();
   }
 
-  async findOne(id: number): Promise<Specialization> {
+  async findOne(id: number) {
     const specialization = await this.prisma.specialization.findUnique({
       where: { SpecializationID: id },
     });
@@ -46,7 +46,7 @@ export class SpecializationsService {
   async update(
     id: number,
     dto: UpdateSpecializationDto,
-  ): Promise<Specialization> {
+  ) {
     await this.findOne(id);
 
     try {
@@ -64,7 +64,7 @@ export class SpecializationsService {
     }
   }
 
-  async remove(id: number): Promise<Specialization> {
+  async remove(id: number) {
     await this.findOne(id);
 
     try {

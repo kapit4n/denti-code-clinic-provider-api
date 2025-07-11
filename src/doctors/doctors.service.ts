@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Doctor, Prisma } from '../../generated/prisma';
+import { Prisma } from '@prisma/client';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 
@@ -8,7 +8,7 @@ import { UpdateDoctorDto } from './dto/update-doctor.dto';
 export class DoctorsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
+  async create(createDoctorDto: CreateDoctorDto) {
     try {
       return await this.prisma.doctor.create({
         data: createDoctorDto,
@@ -25,11 +25,11 @@ export class DoctorsService {
     }
   }
 
-  async findAll(): Promise<Doctor[]> {
+  async findAll() {
     return this.prisma.doctor.findMany({ include: { specialization: true } });
   }
 
-  async findOne(id: number): Promise<Doctor | null> {
+  async findOne(id: number) {
     const doctor = await this.prisma.doctor.findUnique({
       where: { DoctorID: id },
       include: { specialization: true }
@@ -40,7 +40,7 @@ export class DoctorsService {
     return doctor;
   }
 
-  async update(id: number, updateDoctorDto: UpdateDoctorDto): Promise<Doctor> {
+  async update(id: number, updateDoctorDto: UpdateDoctorDto) {
     try {
       return await this.prisma.doctor.update({
         where: { DoctorID: id },
@@ -58,7 +58,7 @@ export class DoctorsService {
     }
   }
 
-  async remove(id: number): Promise<Doctor> {
+  async remove(id: number) {
      try {
       return await this.prisma.doctor.delete({
         where: { DoctorID: id },

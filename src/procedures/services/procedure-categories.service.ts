@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service'; // Adjust path if prisma.service is elsewhere
-import { ProcedureCategory, Prisma } from '../../../generated/prisma';
+import { Prisma } from '@prisma/client';
 import { CreateProcedureCategoryDto } from '../dto/category/create-procedure-category.dto';
 import { UpdateProcedureCategoryDto } from '../dto/category/update-procedure-category.dto';
 
@@ -8,7 +8,7 @@ import { UpdateProcedureCategoryDto } from '../dto/category/update-procedure-cat
 export class ProcedureCategoriesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreateProcedureCategoryDto): Promise<ProcedureCategory> {
+  async create(dto: CreateProcedureCategoryDto) {
     try {
       return await this.prisma.procedureCategory.create({
         data: dto,
@@ -21,11 +21,11 @@ export class ProcedureCategoriesService {
     }
   }
 
-  async findAll(): Promise<ProcedureCategory[]> {
+  async findAll() {
     return this.prisma.procedureCategory.findMany({ include: { procedureTypes: true }}); // Optionally include types
   }
 
-  async findOne(id: number): Promise<ProcedureCategory> {
+  async findOne(id: number) {
     const category = await this.prisma.procedureCategory.findUnique({
       where: { CategoryID: id },
       include: { procedureTypes: true } // Optionally include types
@@ -36,7 +36,7 @@ export class ProcedureCategoriesService {
     return category;
   }
 
-  async update(id: number, dto: UpdateProcedureCategoryDto): Promise<ProcedureCategory> {
+  async update(id: number, dto: UpdateProcedureCategoryDto) {
     try {
       return await this.prisma.procedureCategory.update({
         where: { CategoryID: id },
@@ -53,7 +53,7 @@ export class ProcedureCategoriesService {
     }
   }
 
-  async remove(id: number): Promise<ProcedureCategory> {
+  async remove(id: number) {
     try {
       return await this.prisma.procedureCategory.delete({
         where: { CategoryID: id },

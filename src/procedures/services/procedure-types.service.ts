@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service'; // Adjust path
-import { ProcedureType, Prisma } from '../../../generated/prisma';
+import { Prisma } from '@prisma/client';
 import { CreateProcedureTypeDto } from '../dto/type/create-procedure-type.dto';
 import { UpdateProcedureTypeDto } from '../dto/type/update-procedure-type.dto';
 
@@ -17,7 +17,7 @@ export class ProcedureTypesService {
     }
   }
 
-  async create(dto: CreateProcedureTypeDto): Promise<ProcedureType> {
+  async create(dto: CreateProcedureTypeDto) {
     await this.validateCategoryExists(dto.CategoryID);
     try {
       return await this.prisma.procedureType.create({
@@ -34,14 +34,14 @@ export class ProcedureTypesService {
     }
   }
 
-  async findAll(categoryId?: number): Promise<ProcedureType[]> {
+  async findAll(categoryId?: number) {
     return this.prisma.procedureType.findMany({
       where: categoryId ? { CategoryID: categoryId } : {},
       include: { category: true }
     });
   }
 
-  async findOne(id: number): Promise<ProcedureType> {
+  async findOne(id: number) {
     const type = await this.prisma.procedureType.findUnique({
       where: { ProcedureTypeID: id },
       include: { category: true }
@@ -52,7 +52,7 @@ export class ProcedureTypesService {
     return type;
   }
 
-  async update(id: number, dto: UpdateProcedureTypeDto): Promise<ProcedureType> {
+  async update(id: number, dto: UpdateProcedureTypeDto) {
     if (dto.CategoryID) {
       await this.validateCategoryExists(dto.CategoryID);
     }
@@ -73,7 +73,7 @@ export class ProcedureTypesService {
     }
   }
 
-  async remove(id: number): Promise<ProcedureType> {
+  async remove(id: number) {
     try {
       return await this.prisma.procedureType.delete({
         where: { ProcedureTypeID: id },
