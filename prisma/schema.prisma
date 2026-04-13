@@ -56,3 +56,63 @@ model ProcedureType {
   createdAt                   DateTime  @default(now())
   updatedAt                   DateTime  @updatedAt
 }
+
+/// Materials, equipment, and PPE used during treatments (referenced by appointments service via stable FacilityCode).
+model TreatmentFacility {
+  FacilityID    Int      @id @default(autoincrement())
+  FacilityCode  String   @unique
+  CategoryKey   String
+  DisplayName   String
+  SortOrder     Int      @default(0)
+  IsActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  inventoryLines MaterialInventoryLine[]
+  inventoryMovements InventoryMovement[]
+}
+
+/// Operatory / consultory where consumable stock is tracked (per treatment-facility catalog item).
+model Consultory {
+  ConsultoryID Int      @id @default(autoincrement())
+  Name         String
+  ShortCode    String?  @unique
+  SortOrder    Int      @default(0)
+  IsActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  inventoryLines MaterialInventoryLine[]
+  inventoryMovements InventoryMovement[]
+}
+
+/// On-hand quantity of a catalog material at a specific consultory.
+model MaterialInventoryLine {
+  LineID       Int      @id @default(autoincrement())
+  ConsultoryID Int
+  FacilityID   Int
+  Quantity     Int      @default(0)
+  consultory   Consultory       @relation(fields: [ConsultoryID], references: [ConsultoryID])
+  facility     TreatmentFacility @relation(fields: [FacilityID], references: [FacilityID])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([ConsultoryID, FacilityID])
+}
+
+enum InventoryMovementType {
+  RECEIVE
+  REMOVE
+  CONSUME
+}
+
+/// Audit trail for stock changes (receive, waste/remove, clinical consume).
+model InventoryMovement {
+  MovementID     Int                   @id @default(autoincrement())
+  ConsultoryID   Int
+  FacilityID     Int
+  QuantityChange Int
+  Type           InventoryMovementType
+  Note           String?
+  consultory     Consultory       @relation(fields: [ConsultoryID], references: [ConsultoryID])
+  facility       TreatmentFacility @relation(fields: [FacilityID], references: [FacilityID])
+  createdAt      DateTime @default(now())
+}

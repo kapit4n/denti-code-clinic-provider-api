@@ -165,6 +165,116 @@ async function main() {
   });
 
   console.log('Created Doctors...');
+
+  // --- Consultories (inventory locations) ---
+  const cons1 = await prisma.consultory.upsert({
+    where: { ShortCode: 'C1' },
+    update: { Name: 'Consultorio 1', SortOrder: 10, IsActive: true },
+    create: { Name: 'Consultorio 1', ShortCode: 'C1', SortOrder: 10 },
+  });
+  const cons2 = await prisma.consultory.upsert({
+    where: { ShortCode: 'C2' },
+    update: { Name: 'Consultorio 2', SortOrder: 20, IsActive: true },
+    create: { Name: 'Consultorio 2', ShortCode: 'C2', SortOrder: 20 },
+  });
+  await prisma.consultory.upsert({
+    where: { ShortCode: 'LAB' },
+    update: { Name: 'Laboratorio', SortOrder: 30, IsActive: true },
+    create: { Name: 'Laboratorio', ShortCode: 'LAB', SortOrder: 30 },
+  });
+  console.log('Upserted consultories (inventory locations).');
+
+  // --- Treatment facilities / supplies (catalog for appointments documentation) ---
+  await prisma.inventoryMovement.deleteMany({});
+  await prisma.materialInventoryLine.deleteMany({});
+  await prisma.treatmentFacility.deleteMany({});
+  const treatmentFacilityRows = [
+    { FacilityCode: 'articaine_4pct', CategoryKey: 'anesthesia', DisplayName: 'Articaine 4% with epinephrine (cartridge)', SortOrder: 10 },
+    { FacilityCode: 'lidocaine_2pct', CategoryKey: 'anesthesia', DisplayName: 'Lidocaine 2% with epinephrine (cartridge)', SortOrder: 20 },
+    { FacilityCode: 'mepivacaine_3pct', CategoryKey: 'anesthesia', DisplayName: 'Mepivacaine 3% plain (cartridge)', SortOrder: 30 },
+    { FacilityCode: 'bupivacaine_05', CategoryKey: 'anesthesia', DisplayName: 'Bupivacaine 0.5% with epinephrine (block)', SortOrder: 40 },
+    { FacilityCode: 'topical_benzocaine', CategoryKey: 'anesthesia', DisplayName: 'Topical anesthetic gel (benzocaine)', SortOrder: 50 },
+    { FacilityCode: 'nitrous_oxide_delivery', CategoryKey: 'anesthesia', DisplayName: 'Nitrous oxide / oxygen delivery circuit', SortOrder: 60 },
+    { FacilityCode: 'latex_gloves', CategoryKey: 'ppe', DisplayName: 'Latex examination gloves', SortOrder: 10 },
+    { FacilityCode: 'nitrile_gloves', CategoryKey: 'ppe', DisplayName: 'Nitrile examination gloves', SortOrder: 20 },
+    { FacilityCode: 'surgical_mask', CategoryKey: 'ppe', DisplayName: 'Surgical mask', SortOrder: 30 },
+    { FacilityCode: 'protective_eyewear', CategoryKey: 'ppe', DisplayName: 'Protective eyewear (loupes / glasses)', SortOrder: 40 },
+    { FacilityCode: 'face_shield', CategoryKey: 'ppe', DisplayName: 'Face shield', SortOrder: 50 },
+    { FacilityCode: 'patient_bib', CategoryKey: 'ppe', DisplayName: 'Patient bib & clip', SortOrder: 60 },
+    { FacilityCode: 'high_volume_evacuation', CategoryKey: 'isolation', DisplayName: 'High-volume evacuation (HVE)', SortOrder: 10 },
+    { FacilityCode: 'saliva_ejector', CategoryKey: 'isolation', DisplayName: 'Saliva ejector', SortOrder: 20 },
+    { FacilityCode: 'suction_tips', CategoryKey: 'isolation', DisplayName: 'Disposable suction tips', SortOrder: 30 },
+    { FacilityCode: 'rubber_dam_kit', CategoryKey: 'isolation', DisplayName: 'Rubber dam, frame & clamps', SortOrder: 40 },
+    { FacilityCode: 'cotton_rolls', CategoryKey: 'isolation', DisplayName: 'Cotton rolls', SortOrder: 50 },
+    { FacilityCode: 'gauze_2x2', CategoryKey: 'isolation', DisplayName: 'Gauze 2×2', SortOrder: 60 },
+    { FacilityCode: 'handpiece_highspeed', CategoryKey: 'power_equipment', DisplayName: 'High-speed handpiece', SortOrder: 10 },
+    { FacilityCode: 'handpiece_slowspeed', CategoryKey: 'power_equipment', DisplayName: 'Low-speed handpiece / contra-angle', SortOrder: 20 },
+    { FacilityCode: 'ultrasonic_scaler', CategoryKey: 'power_equipment', DisplayName: 'Ultrasonic scaler / piezo insert', SortOrder: 30 },
+    { FacilityCode: 'prophy_angle', CategoryKey: 'power_equipment', DisplayName: 'Disposable prophy angle & paste', SortOrder: 40 },
+    { FacilityCode: 'air_water_syringe', CategoryKey: 'power_equipment', DisplayName: 'Air–water syringe tips', SortOrder: 50 },
+    { FacilityCode: 'curing_light_led', CategoryKey: 'power_equipment', DisplayName: 'LED curing light', SortOrder: 60 },
+    { FacilityCode: 'mouth_mirror', CategoryKey: 'hand_instruments', DisplayName: 'Mouth mirror & handle', SortOrder: 10 },
+    { FacilityCode: 'explorer_probe', CategoryKey: 'hand_instruments', DisplayName: 'Explorer / probe', SortOrder: 20 },
+    { FacilityCode: 'periodontal_probe', CategoryKey: 'hand_instruments', DisplayName: 'Periodontal probe (Williams / UNC)', SortOrder: 30 },
+    { FacilityCode: 'college_pliers', CategoryKey: 'hand_instruments', DisplayName: 'Cotton pliers / college tweezers', SortOrder: 40 },
+    { FacilityCode: 'digital_sensor', CategoryKey: 'imaging', DisplayName: 'Digital radiography sensor', SortOrder: 10 },
+    { FacilityCode: 'lead_apron_thyroid_collar', CategoryKey: 'imaging', DisplayName: 'Lead apron & thyroid collar', SortOrder: 20 },
+    { FacilityCode: 'phosphor_plates', CategoryKey: 'imaging', DisplayName: 'Phosphor storage plates (PSP)', SortOrder: 30 },
+    { FacilityCode: 'fluoride_varnish', CategoryKey: 'restorative', DisplayName: 'Fluoride varnish application', SortOrder: 10 },
+    { FacilityCode: 'etchant_syringe', CategoryKey: 'restorative', DisplayName: 'Phosphoric acid etchant', SortOrder: 20 },
+    { FacilityCode: 'bonding_agent', CategoryKey: 'restorative', DisplayName: 'Dental bonding agent / primer', SortOrder: 30 },
+    { FacilityCode: 'composite_compules', CategoryKey: 'restorative', DisplayName: 'Composite resin compules', SortOrder: 40 },
+    { FacilityCode: 'articulating_paper', CategoryKey: 'restorative', DisplayName: 'Articulating paper / foil', SortOrder: 50 },
+  ];
+  await prisma.treatmentFacility.createMany({ data: treatmentFacilityRows });
+  console.log(`Seeded ${treatmentFacilityRows.length} treatment facilities.`);
+
+  // --- Sample material inventory (per consultory, linked to treatment catalog) ---
+  const fac = async (code: string) =>
+    prisma.treatmentFacility.findUniqueOrThrow({ where: { FacilityCode: code } });
+
+  const nitrile = await fac('nitrile_gloves');
+  const articaine = await fac('articaine_4pct');
+  const composite = await fac('composite_compules');
+
+  await prisma.materialInventoryLine.createMany({
+    data: [
+      { ConsultoryID: cons1.ConsultoryID, FacilityID: nitrile.FacilityID, Quantity: 120 },
+      { ConsultoryID: cons1.ConsultoryID, FacilityID: articaine.FacilityID, Quantity: 40 },
+      { ConsultoryID: cons2.ConsultoryID, FacilityID: nitrile.FacilityID, Quantity: 80 },
+      { ConsultoryID: cons2.ConsultoryID, FacilityID: composite.FacilityID, Quantity: 24 },
+    ],
+  });
+  await prisma.inventoryMovement.createMany({
+    data: [
+      {
+        ConsultoryID: cons1.ConsultoryID,
+        FacilityID: nitrile.FacilityID,
+        QuantityChange: 120,
+        Type: 'RECEIVE',
+      },
+      {
+        ConsultoryID: cons1.ConsultoryID,
+        FacilityID: articaine.FacilityID,
+        QuantityChange: 40,
+        Type: 'RECEIVE',
+      },
+      {
+        ConsultoryID: cons2.ConsultoryID,
+        FacilityID: nitrile.FacilityID,
+        QuantityChange: 80,
+        Type: 'RECEIVE',
+      },
+      {
+        ConsultoryID: cons2.ConsultoryID,
+        FacilityID: composite.FacilityID,
+        QuantityChange: 24,
+        Type: 'RECEIVE',
+      },
+    ],
+  });
+  console.log('Seeded sample material inventory lines + opening movements.');
+
   console.log('Seeding for Clinic & Provider Service finished.');
 }
 
