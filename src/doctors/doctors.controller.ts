@@ -1,9 +1,20 @@
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, HttpCode, HttpStatus
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+  HttpCode,
+  HttpStatus,
+  Headers,
 } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
+import { PatchDoctorAvatarDto } from './dto/patch-doctor-avatar.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('Doctors')
@@ -36,6 +47,19 @@ export class DoctorsController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Doctor not found.' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.doctorsService.findOne(id);
+  }
+
+  @Patch('me/avatar')
+  @ApiOperation({ summary: 'Update avatar for the authenticated doctor (matched by x-user-email)' })
+  @ApiBody({ type: PatchDoctorAvatarDto })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Doctor avatar updated.' })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Missing email on request.' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'No doctor record for this email.' })
+  patchMyAvatar(
+    @Headers('x-user-email') userEmail: string | undefined,
+    @Body() dto: PatchDoctorAvatarDto,
+  ) {
+    return this.doctorsService.patchAvatarByEmail(userEmail, dto);
   }
 
   @Patch(':id')

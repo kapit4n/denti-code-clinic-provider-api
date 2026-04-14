@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEmail, IsOptional, IsBoolean, IsInt, Length, Matches } from 'class-validator';
+import { IsString, IsNotEmpty, IsEmail, IsOptional, IsBoolean, IsInt, Length, Matches, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'; // For Swagger docs
 
 export class CreateDoctorDto {
@@ -46,4 +46,16 @@ export class CreateDoctorDto {
   @IsOptional()
   @IsInt()
   SpecializationID?: number;
+
+  @ApiPropertyOptional({
+    example: '/avatars/sample.jpg',
+    description: 'Optional profile photo URL (path or https)',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  @Matches(/^(\/avatars\/[\w.-]+|https?:\/\/.+)$/, {
+    message: 'AvatarUrl must be a path under /avatars/ or an http(s) URL',
+  })
+  AvatarUrl?: string;
 }

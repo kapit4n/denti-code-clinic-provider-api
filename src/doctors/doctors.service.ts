@@ -1,8 +1,15 @@
-import { Injectable, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
+import { PatchDoctorAvatarDto } from './dto/patch-doctor-avatar.dto';
 
 @Injectable()
 export class DoctorsService {
@@ -38,6 +45,25 @@ export class DoctorsService {
       throw new NotFoundException(`Doctor with ID ${id} not found.`);
     }
     return doctor;
+  }
+
+  async patchAvatarByEmail(emailRaw: string | undefined, dto: PatchDoctorAvatarDto) {
+    const email = emailRaw?.trim();
+    if (!email) {
+      throw new UnauthorizedException('Missing user email (x-user-email).');
+    }
+    const doctor = await this.prisma.doctor.findFirst({
+      where: { Email: email },
+    });
+    if (!doctor) {
+      throw new NotFoundException('Doctor profile not found for this account.');
+    }
+    const nextUrl = dto.AvatarUrl.trim() === '' ? null : dto.AvatarUrl.trim();
+    return this.prisma.doctor.update({
+      where: { DoctorID: doctor.DoctorID },
+      data: { AvatarUrl: nextUrl },
+      include: { specialization: true },
+    });
   }
 
   async update(id: number, updateDoctorDto: UpdateDoctorDto) {

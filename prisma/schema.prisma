@@ -26,6 +26,7 @@ model Doctor {
   LicenseNumber       String     @unique
   ContactPhone        String     @unique
   Email               String     @unique
+  AvatarUrl           String?
   OfficeRoomNumber    String?
   IsActive            Boolean    @default(true)
   SpecializationID    Int?       // Foreign key for Specialization
